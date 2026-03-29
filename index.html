@@ -240,6 +240,14 @@ document.getElementById('newItem').addEventListener('keydown', e => {
   if (e.key === 'Enter') addItem();
 });
 
+// Seed default items on first visit
+if (!localStorage.getItem(STORAGE_KEY)) {
+  save([
+    { text: "Go over Giorgio's bar deal again", done: false, created: Date.now() },
+    { text: "Test the StemSmith website", done: false, created: Date.now() }
+  ]);
+}
+
 render();
 </script>
 </body>
