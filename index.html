@@ -240,21 +240,24 @@ document.getElementById('newItem').addEventListener('keydown', e => {
   if (e.key === 'Enter') addItem();
 });
 
-// URL param support: ?add=item1&add=item2 auto-adds items
+// Server push: fetch push.json on load, merge new items into localStorage
 (function() {
-  const params = new URLSearchParams(window.location.search);
-  const toAdd = params.getAll('add');
-  if (toAdd.length > 0) {
-    const items = load();
-    toAdd.reverse().forEach(text => {
-      text = text.trim();
-      if (text && !items.some(i => i.text === text)) {
-        items.unshift({ text, done: false, created: Date.now() });
-      }
-    });
-    save(items);
-    window.history.replaceState({}, '', window.location.pathname);
-  }
+  fetch('push.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : [])
+    .then(pushed => {
+      if (!Array.isArray(pushed) || pushed.length === 0) return;
+      const items = load();
+      let changed = false;
+      pushed.forEach(text => {
+        text = (text || '').trim();
+        if (text && !items.some(i => i.text === text)) {
+          items.unshift({ text, done: false, created: Date.now() });
+          changed = true;
+        }
+      });
+      if (changed) { save(items); render(); }
+    })
+    .catch(() => {});
 })();
 
 // Seed default items on first visit
