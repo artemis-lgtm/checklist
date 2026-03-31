@@ -240,6 +240,23 @@ document.getElementById('newItem').addEventListener('keydown', e => {
   if (e.key === 'Enter') addItem();
 });
 
+// URL param support: ?add=item1&add=item2 auto-adds items
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const toAdd = params.getAll('add');
+  if (toAdd.length > 0) {
+    const items = load();
+    toAdd.reverse().forEach(text => {
+      text = text.trim();
+      if (text && !items.some(i => i.text === text)) {
+        items.unshift({ text, done: false, created: Date.now() });
+      }
+    });
+    save(items);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
+
 // Seed default items on first visit
 if (!localStorage.getItem(STORAGE_KEY)) {
   save([
